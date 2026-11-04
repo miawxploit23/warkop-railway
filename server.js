@@ -48,7 +48,10 @@ const server = http.createServer(async (req, res) => {
     catch (e) { return send(res, 400, "Bad request"); }
     if (!text) return send(res, 400, "Kosong");
 
-    if (!BOT_TOKEN || !CHAT_ID) return send(res, 500, "Bot belum dikonfigurasi");
+    if (!BOT_TOKEN || !CHAT_ID) {
+      console.error("GAGAL: BOT_TOKEN atau CHAT_ID belum diisi di Variables Railway. BOT_TOKEN ada? " + !!BOT_TOKEN + ", CHAT_ID ada? " + !!CHAT_ID);
+      return send(res, 500, "Bot belum dikonfigurasi");
+    }
 
     const waktu = new Date().toLocaleString("id-ID", { timeZone: "Asia/Makassar" });
     const pesan = "📍 Masukan baru - Warkop Posisi\n" + waktu + " WITA\n\n" + text;
@@ -59,8 +62,10 @@ const server = http.createServer(async (req, res) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat_id: CHAT_ID, text: pesan }),
       });
+      if (!r.ok) console.error("GAGAL dari Telegram (" + r.status + "): " + (await r.text()));
       return send(res, r.ok ? 200 : 502, r.ok ? "OK" : "Telegram error");
     } catch (e) {
+      console.error("GAGAL menghubungi Telegram: " + e.message);
       return send(res, 502, "Telegram error");
     }
   }
